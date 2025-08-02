@@ -15,6 +15,16 @@ spec:
       labels:
         app: flask-app
     spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:15
+          command: ['sh', '-c', 'until pg_isready -h postgres -U flaskuser; do echo waiting for postgres; sleep 2; done;']
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: flask-secret
+                  key: DB_PASSWORD
       containers:
         - name: flask-app
           image: ghcr.io/dipankaradhikary/flask-app:latest
@@ -23,6 +33,11 @@ spec:
           env:
             - name: FLASK_ENV
               value: development
+          envFrom:
+            - configMapRef:
+                name: flask-config
+            - secretRef:
+                name: flask-secret
           resources:
             requests:
               memory: "256Mi"
@@ -30,8 +45,15 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
-          envFrom:
-            - configMapRef:
-                name: flask-config
-            - secretRef:
-                name: flask-secret
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5

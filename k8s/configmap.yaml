@@ -4,5 +4,5 @@ metadata:
   name: flask-config
   namespace: default
 data:
-  FLASK_ENV: "development"
-  APP_MESSAGE: "Hello from ConfigMap"
+  DB_HOST: postgres
+  DB_NAME: flaskdb

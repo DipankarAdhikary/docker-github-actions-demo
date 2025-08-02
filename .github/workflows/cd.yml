@@ -13,12 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Verify cluster connectivity
+        run: kubectl cluster-info
+
       - name: Set image tag
         shell: powershell
         run: |
           Add-Content -Path $env:GITHUB_ENV -Value "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}"
-
-
 
       - name: Update Kubernetes manifests
         shell: powershell
@@ -32,12 +33,29 @@ jobs:
         shell: powershell
         run: Get-Content k8s/deployment.yaml
 
-      - name: Apply Kubernetes Configs
+      - name: Apply ConfigMap & Secret
         run: |
           kubectl apply -f k8s/configmap.yaml
           kubectl apply -f k8s/secret.yaml
+
+      - name: Apply Postgres Resources
+        run: |
+          kubectl apply -f k8s/postgres-pvc.yaml
+          kubectl apply -f k8s/postgres-deployment.yaml
+          kubectl apply -f k8s/postgres-service.yaml
+      - name: Wait for Postgres rollout
+        run: kubectl rollout status deployment/postgres --timeout=120s
+
+      - name: Apply Flask Deployment & Service
+        run: |
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
+      - name: Wait for Flask rollout
+        run: kubectl rollout status deployment/flask-app --timeout=120s
+
       - name: Apply Ingress Config
+        run: kubectl apply -f k8s/ingress.yaml
+
+      - name: Test Health Endpoint
         run: |
-          kubectl apply -f k8s/ingress.yaml
+          curl --fail -H "Host: flask.local" http://127.0.0.1/health

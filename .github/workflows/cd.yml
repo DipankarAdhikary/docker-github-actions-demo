@@ -20,17 +20,10 @@ jobs:
         shell: powershell
         run: |
           $deploymentPath = "k8s/deployment.yaml"
-          $newImage = "ghcr.io/dipankaradhikary/flask-app:${env:IMAGE_TAG}"
-          $oldContent = Get-Content -Path $deploymentPath
-          $newContent = $oldContent | ForEach-Object {
-            if ($_ -match "^\s*image:\s*ghcr.io/dipankaradhikary/flask-app:.*$") {
-              $leadingWhitespace = $_ -replace '(\s*).*', '$1'
-              "${leadingWhitespace}image: $newImage"
-            } else {
-              $_
-            }
-          }
-          $newContent | Set-Content -Path $deploymentPath
+          $imageTag = $env:IMAGE_TAG
+          $newImage = "ghcr.io/dipankaradhikary/flask-app:$imageTag"
+          (Get-Content $deploymentPath) -replace "ghcr.io/dipankaradhikary/flask-app:.*", $newImage | Set-Content $deploymentPath
+
 
       - name: Debug deployment.yaml
         shell: powershell

@@ -32,6 +32,11 @@ jobs:
           }
           $newContent | Set-Content -Path $deploymentPath
 
+      - name: Debug deployment.yaml
+        shell: powershell
+        run: |
+          Write-Output "----- deployment.yaml after replacement -----"
+          Get-Content k8s/deployment.yaml
 
       - name: Apply Kubernetes Configs
         run: |

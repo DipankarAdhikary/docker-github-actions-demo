@@ -19,41 +19,25 @@ spec:
             - sh
             - -c
             - |
-              until pg_isready -h postgres -U flaskuser; do
+              until pg_isready -h postgres -U $(DB_USER); do
                 echo "Waiting for postgres...";
                 sleep 2;
               done;
-          env:
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: flask-secret
-                  key: DB_PASSWORD
+          envFrom:
+            - configMapRef:
+                name: flask-config
+            - secretRef:
+                name: flask-secret
       containers:
         - name: flask-app
           image: ghcr.io/dipankaradhikary/flask-app:latest
           ports:
             - containerPort: 5000
-          env:
-            - name: FLASK_ENV
-              value: development
-            - name: DB_HOST
-              value: postgres
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: flask-secret
-                  key: DB_USER
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: flask-secret
-                  key: DB_PASSWORD
-            - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: flask-secret
-                  key: DB_NAME
+          envFrom:
+            - configMapRef:
+                name: flask-config
+            - secretRef:
+                name: flask-secret
           resources:
             requests:
               cpu: 250m

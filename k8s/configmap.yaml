@@ -2,7 +2,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: flask-config
-  namespace: default
 data:
-  DB_HOST: postgres
   DB_NAME: flaskdb
+  DB_HOST: postgres

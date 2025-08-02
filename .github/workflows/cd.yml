@@ -1,4 +1,5 @@
-name: CD Deploy to Minikube
+name: CD - Deploy to Minikube
+
 on:
   workflow_run:
     workflows: ["CI - Build and Push Docker Image"]
@@ -11,7 +12,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Apply Kubernetes configs
+
+      - name: Set image tag
+        run: echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
+
+      - name: Update Kubernetes manifests
+        run: |
+          sed -i "s|ghcr.io/.*/flask-app:.*|ghcr.io/${{ github.repository_owner }}/flask-app:${IMAGE_TAG}|" k8s/deployment.yaml
+
+      - name: Apply Kubernetes Configs
         run: |
           kubectl apply -f k8s/configmap.yaml
           kubectl apply -f k8s/secret.yaml

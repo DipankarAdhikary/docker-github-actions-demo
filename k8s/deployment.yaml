@@ -2,9 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: flask-app
-  namespace: default
-  labels:
-    app: flask-app
 spec:
   replicas: 1
   selector:
@@ -18,7 +15,14 @@ spec:
       initContainers:
         - name: wait-for-postgres
           image: postgres:15
-          command: ['sh', '-c', 'until pg_isready -h postgres -U flaskuser; do echo waiting for postgres; sleep 2; done;']
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U flaskuser; do
+                echo "Waiting for postgres...";
+                sleep 2;
+              done;
           env:
             - name: PGPASSWORD
               valueFrom:
@@ -33,18 +37,30 @@ spec:
           env:
             - name: FLASK_ENV
               value: development
-          envFrom:
-            - configMapRef:
-                name: flask-config
-            - secretRef:
-                name: flask-secret
+            - name: DB_HOST
+              value: postgres
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: flask-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: flask-secret
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: flask-secret
+                  key: DB_NAME
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "250m"
+              cpu: 250m
+              memory: 256Mi
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              cpu: 500m
+              memory: 512Mi
           livenessProbe:
             httpGet:
               path: /health

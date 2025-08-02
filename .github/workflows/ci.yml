@@ -47,4 +47,4 @@ jobs:
           push: true
           tags: |
             ghcr.io/dipankaradhikary/flask-app:latest
-            ghcr.io/${{ github.repository_owner }}/flask-app:${{ github.sha }}
+            ghcr.io/dipankaradhikary/flask-app:${{ github.sha }}

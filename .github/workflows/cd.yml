@@ -18,7 +18,7 @@ jobs:
 
       - name: Update Kubernetes manifests
         run: |
-          sed -i "s|ghcr.io/.*/flask-app:.*|ghcr.io/dipankaradhikary/flask-app:${IMAGE_TAG}|" k8s/deployment.yaml
+          (Get-Content k8s/deployment.yaml) -replace "ghcr.io/.*/flask-app:.*", "ghcr.io/dipankaradhikary/flask-app:${env:IMAGE_TAG}" | Set-Content k8s/deployment.yaml
 
       - name: Apply Kubernetes Configs
         run: |

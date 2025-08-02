@@ -17,24 +17,21 @@ jobs:
         run: echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
 
       - name: Update Kubernetes manifests
-        shell: pwsh
+        shell: powershell
         run: |
           $deploymentPath = "k8s/deployment.yaml"
           $newImage = "ghcr.io/dipankaradhikary/flask-app:${env:IMAGE_TAG}"
           $oldContent = Get-Content -Path $deploymentPath
           $newContent = $oldContent | ForEach-Object {
             if ($_ -match "^\s*image:\s*ghcr.io/dipankaradhikary/flask-app:.*$") {
-              # Extract leading whitespace from the original line
               $leadingWhitespace = $_ -replace '(\s*).*', '$1'
-              # Reconstruct the line with the correct indentation and new image
               "${leadingWhitespace}image: $newImage"
             } else {
-              # Return all other lines unchanged
               $_
             }
           }
-          # Write the updated content back to the file
           $newContent | Set-Content -Path $deploymentPath
+
 
       - name: Apply Kubernetes Configs
         run: |

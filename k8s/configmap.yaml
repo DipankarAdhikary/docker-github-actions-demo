@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: flask-config
 data:
-  DB_NAME: flaskdb
   DB_HOST: postgres
+  DB_PORT: "5432"
